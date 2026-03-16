@@ -1,0 +1,273 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { background: #000; overflow: hidden; font-family: 'Segoe UI', Arial, sans-serif; }
+#game-container { position: relative; width: 100vw; height: 100vh; }
+#gameCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; }
+
+/* RS-style panel colors */
+:root {
+  --panel-bg: linear-gradient(180deg, #3b2a1a 0%, #2a1d10 100%);
+  --panel-border: #5a4a3a;
+  --panel-gold: #c8a84e;
+  --panel-text: #e8d8a8;
+  --panel-dark: #1a1208;
+  --panel-highlight: #4a3a2a;
+}
+
+/* Top bar orbs */
+#top-bar {
+  position: absolute; top: 10px; left: 10px;
+  display: flex; gap: 8px; z-index: 10;
+}
+.orb {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: #1a1208; border: 2px solid var(--panel-gold);
+  position: relative; overflow: hidden; cursor: pointer;
+}
+.orb-fill {
+  position: absolute; bottom: 0; width: 100%;
+  transition: height 0.3s;
+}
+.hp-fill { background: rgba(200,30,30,0.6); height: 100%; }
+.prayer-fill { background: rgba(40,140,200,0.6); height: 100%; }
+.run-fill { background: rgba(200,180,40,0.6); height: 100%; }
+.orb-icon {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  font-size: 18px; z-index: 2;
+}
+.orb-text {
+  position: absolute; bottom: -18px; width: 100%;
+  text-align: center; font-size: 10px; color: var(--panel-text);
+  text-shadow: 1px 1px 2px #000;
+}
+
+/* Minimap */
+#minimap-container {
+  position: absolute; top: 8px; right: 8px; z-index: 10;
+  width: 164px; height: 164px; border-radius: 50%;
+  border: 3px solid var(--panel-gold); background: #1a1208;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0,0,0,0.8), inset 0 0 5px rgba(0,0,0,0.5);
+}
+#minimapCanvas { border-radius: 50%; }
+.minimap-compass {
+  position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+  color: var(--panel-gold); font-weight: bold; font-size: 12px;
+  text-shadow: 1px 1px 2px #000;
+}
+
+/* Right panel */
+#right-panel {
+  position: absolute; top: 180px; right: 4px; width: 210px;
+  background: var(--panel-bg); border: 2px solid var(--panel-border);
+  border-radius: 4px; z-index: 10;
+  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+  max-height: calc(100vh - 260px); overflow: hidden;
+}
+#panel-tabs {
+  display: flex; background: var(--panel-dark);
+  border-bottom: 2px solid var(--panel-border);
+}
+.tab {
+  flex: 1; padding: 6px 2px; text-align: center; cursor: pointer;
+  font-size: 16px; border-right: 1px solid var(--panel-border);
+  transition: background 0.2s;
+}
+.tab:hover { background: var(--panel-highlight); }
+.tab.active { background: var(--panel-highlight); box-shadow: inset 0 -2px 0 var(--panel-gold); }
+.tab:last-child { border-right: none; }
+
+#panel-content { padding: 4px; }
+.panel-page { display: none; }
+.panel-page.active { display: block; }
+
+/* Inventory grid */
+#inventory-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px;
+}
+.inv-slot {
+  width: 48px; height: 48px; background: rgba(0,0,0,0.4);
+  border: 1px solid #4a3a2a; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 11px; color: var(--panel-text);
+  text-align: center; position: relative;
+  transition: background 0.15s;
+}
+.inv-slot:hover { background: rgba(80,60,30,0.5); }
+.inv-slot .item-count {
+  position: absolute; bottom: 1px; right: 2px;
+  font-size: 9px; color: #ff0;
+  text-shadow: 1px 1px 1px #000;
+}
+
+/* Stats */
+#stats-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.stat-entry {
+  background: rgba(0,0,0,0.3); border: 1px solid #3a2a1a;
+  padding: 3px 5px; border-radius: 2px; cursor: pointer;
+  font-size: 11px; color: var(--panel-text);
+}
+.stat-entry .stat-name { font-weight: bold; color: var(--panel-gold); }
+.stat-entry .stat-level { float: right; color: #fff; }
+.stat-entry .stat-xp { font-size: 9px; color: #aaa; display: block; }
+
+/* Equipment */
+#equipment-slots {
+  display: grid; gap: 2px; padding: 8px;
+  grid-template-areas:
+    ". head ."
+    "cape neck ."
+    "weapon body shield"
+    ". legs ."
+    "hands feet ring";
+  grid-template-columns: 1fr 1fr 1fr;
+}
+.equip-slot {
+  width: 52px; height: 52px; background: rgba(0,0,0,0.4);
+  border: 1px solid #4a3a2a; border-radius: 2px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 10px; color: #666;
+  margin: 0 auto;
+}
+.equip-slot.equipped { color: var(--panel-text); border-color: var(--panel-gold); }
+#equip-stats { padding: 4px; font-size: 11px; color: var(--panel-text); }
+.panel-info { color: #888; text-align: center; padding: 20px 10px; font-style: italic; }
+
+/* Chat box */
+#chat-box {
+  position: absolute; bottom: 4px; left: 4px; width: 500px; height: 140px;
+  background: rgba(26,18,8,0.9); border: 2px solid var(--panel-border);
+  border-radius: 4px; z-index: 10; display: flex; flex-direction: column;
+  box-shadow: 0 0 15px rgba(0,0,0,0.7);
+}
+#chat-tabs {
+  display: flex; background: var(--panel-dark);
+  border-bottom: 1px solid var(--panel-border);
+}
+.chat-tab {
+  padding: 3px 12px; cursor: pointer; font-size: 11px;
+  color: var(--panel-text); border-right: 1px solid var(--panel-border);
+}
+.chat-tab.active { background: var(--panel-highlight); color: var(--panel-gold); }
+#chat-messages {
+  flex: 1; overflow-y: auto; padding: 4px 8px; font-size: 12px;
+  color: var(--panel-text); line-height: 1.4;
+}
+#chat-messages::-webkit-scrollbar { width: 6px; }
+#chat-messages::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 3px; }
+.chat-msg-game { color: #4a9; }
+.chat-msg-system { color: #c84; }
+.chat-msg-combat { color: #c44; }
+.chat-msg-skill { color: #4ac; }
+.chat-msg-drop { color: #a4c; }
+#chat-input {
+  width: 100%; padding: 4px 8px; background: rgba(0,0,0,0.5);
+  border: none; border-top: 1px solid var(--panel-border);
+  color: var(--panel-text); font-size: 12px; outline: none;
+}
+
+/* Context menu */
+#context-menu {
+  position: absolute; z-index: 100; min-width: 150px;
+  background: rgba(26,18,8,0.95); border: 2px solid var(--panel-gold);
+  border-radius: 4px; padding: 2px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.8);
+}
+#context-menu.hidden { display: none; }
+.ctx-item {
+  padding: 4px 12px; color: var(--panel-text); cursor: pointer;
+  font-size: 12px; border-bottom: 1px solid rgba(90,74,58,0.3);
+}
+.ctx-item:hover { background: var(--panel-highlight); }
+.ctx-item:last-child { border-bottom: none; }
+.ctx-title { color: var(--panel-gold); font-weight: bold; }
+.ctx-action { color: #fff; }
+.ctx-action span { color: var(--panel-gold); }
+
+/* Dialogue */
+#dialogue-box {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 400px; background: rgba(26,18,8,0.95);
+  border: 3px solid var(--panel-gold); border-radius: 8px;
+  padding: 16px; z-index: 50;
+  box-shadow: 0 0 30px rgba(0,0,0,0.9);
+}
+#dialogue-box.hidden { display: none; }
+#dialogue-npc-name {
+  color: var(--panel-gold); font-size: 16px; font-weight: bold;
+  margin-bottom: 8px; text-align: center;
+}
+#dialogue-text { color: var(--panel-text); font-size: 13px; margin-bottom: 12px; line-height: 1.5; }
+#dialogue-options { display: flex; flex-direction: column; gap: 4px; }
+.dialogue-option {
+  padding: 6px 12px; background: var(--panel-highlight);
+  border: 1px solid var(--panel-border); border-radius: 4px;
+  color: var(--panel-text); cursor: pointer; font-size: 12px;
+  transition: background 0.15s;
+}
+.dialogue-option:hover { background: rgba(100,80,50,0.6); color: #fff; }
+
+/* Shop / Bank */
+#shop-window, #bank-window {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 420px; max-height: 400px; background: rgba(26,18,8,0.95);
+  border: 3px solid var(--panel-gold); border-radius: 8px;
+  z-index: 50; box-shadow: 0 0 30px rgba(0,0,0,0.9);
+}
+#shop-window.hidden, #bank-window.hidden { display: none; }
+.shop-header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 12px; border-bottom: 2px solid var(--panel-border);
+  color: var(--panel-gold); font-weight: bold;
+}
+.shop-header button {
+  background: none; border: 1px solid var(--panel-border); color: var(--panel-text);
+  cursor: pointer; padding: 2px 8px; border-radius: 3px;
+}
+#shop-items, #bank-items {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px;
+  padding: 8px; max-height: 330px; overflow-y: auto;
+}
+.shop-item, .bank-item {
+  width: 70px; height: 60px; background: rgba(0,0,0,0.4);
+  border: 1px solid #4a3a2a; border-radius: 3px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 10px; color: var(--panel-text); text-align: center;
+}
+.shop-item:hover, .bank-item:hover { background: rgba(80,60,30,0.5); border-color: var(--panel-gold); }
+.shop-item .price { color: #fc0; font-size: 9px; }
+
+/* Loading */
+#loading-screen {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: #0a0604; z-index: 200;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.loading-title {
+  font-size: 48px; color: var(--panel-gold); font-weight: bold;
+  text-shadow: 0 0 20px rgba(200,168,78,0.5), 2px 2px 4px rgba(0,0,0,0.8);
+  margin-bottom: 30px; letter-spacing: 3px;
+}
+.loading-bar-container {
+  width: 300px; height: 20px; background: #1a1208;
+  border: 2px solid var(--panel-gold); border-radius: 10px; overflow: hidden;
+}
+.loading-bar {
+  width: 0%; height: 100%;
+  background: linear-gradient(90deg, #8a6a2e, #c8a84e, #8a6a2e);
+  transition: width 0.3s;
+}
+.loading-text { color: var(--panel-text); margin-top: 10px; font-size: 14px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.3); }
+::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 4px; }
+
+/* Mobile */
+@media (max-width: 768px) {
+  #chat-box { width: calc(100% - 8px); height: 100px; }
+  #right-panel { width: 180px; }
+  .inv-slot { width: 40px; height: 40px; }
+  #minimap-container { width: 120px; height: 120px; }
+  #minimapCanvas { width: 120px; height: 120px; }
+}

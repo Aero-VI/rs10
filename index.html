@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>RuneScape 10</title>
+<link rel="stylesheet" href="ui.css">
+</head>
+<body>
+<div id="game-container">
+  <canvas id="gameCanvas"></canvas>
+  
+  <!-- Top bar orbs -->
+  <div id="top-bar">
+    <div class="orb" id="hp-orb">
+      <div class="orb-fill hp-fill"></div>
+      <div class="orb-icon">❤️</div>
+      <div class="orb-text" id="hp-text">10/10</div>
+    </div>
+    <div class="orb" id="prayer-orb">
+      <div class="orb-fill prayer-fill"></div>
+      <div class="orb-icon">✝️</div>
+      <div class="orb-text" id="prayer-text">1/1</div>
+    </div>
+    <div class="orb" id="run-orb">
+      <div class="orb-fill run-fill"></div>
+      <div class="orb-icon">🏃</div>
+      <div class="orb-text" id="run-text">100%</div>
+    </div>
+  </div>
+
+  <!-- Minimap -->
+  <div id="minimap-container">
+    <canvas id="minimapCanvas" width="160" height="160"></canvas>
+    <div class="minimap-compass">N</div>
+  </div>
+
+  <!-- Right panel -->
+  <div id="right-panel">
+    <div id="panel-tabs">
+      <div class="tab active" data-tab="inventory" title="Inventory">🎒</div>
+      <div class="tab" data-tab="stats" title="Stats">📊</div>
+      <div class="tab" data-tab="equipment" title="Equipment">⚔️</div>
+      <div class="tab" data-tab="prayer" title="Prayer">🙏</div>
+      <div class="tab" data-tab="magic" title="Magic">✨</div>
+      <div class="tab" data-tab="quests" title="Quests">📜</div>
+    </div>
+    <div id="panel-content">
+      <div class="panel-page active" id="inventory-panel">
+        <div id="inventory-grid"></div>
+      </div>
+      <div class="panel-page" id="stats-panel">
+        <div id="stats-list"></div>
+      </div>
+      <div class="panel-page" id="equipment-panel">
+        <div id="equipment-slots">
+          <div class="equip-slot" data-slot="head" style="grid-area:head">Head</div>
+          <div class="equip-slot" data-slot="cape" style="grid-area:cape">Cape</div>
+          <div class="equip-slot" data-slot="neck" style="grid-area:neck">Neck</div>
+          <div class="equip-slot" data-slot="weapon" style="grid-area:weapon">Weapon</div>
+          <div class="equip-slot" data-slot="body" style="grid-area:body">Body</div>
+          <div class="equip-slot" data-slot="shield" style="grid-area:shield">Shield</div>
+          <div class="equip-slot" data-slot="legs" style="grid-area:legs">Legs</div>
+          <div class="equip-slot" data-slot="hands" style="grid-area:hands">Hands</div>
+          <div class="equip-slot" data-slot="feet" style="grid-area:feet">Feet</div>
+          <div class="equip-slot" data-slot="ring" style="grid-area:ring">Ring</div>
+        </div>
+        <div id="equip-stats"></div>
+      </div>
+      <div class="panel-page" id="prayer-panel"><p class="panel-info">Prayers coming soon...</p></div>
+      <div class="panel-page" id="magic-panel"><p class="panel-info">Spells coming soon...</p></div>
+      <div class="panel-page" id="quests-panel"><p class="panel-info">Quests coming soon...</p></div>
+    </div>
+  </div>
+
+  <!-- Chat box -->
+  <div id="chat-box">
+    <div id="chat-tabs">
+      <div class="chat-tab active" data-chat="all">All</div>
+      <div class="chat-tab" data-chat="game">Game</div>
+      <div class="chat-tab" data-chat="public">Public</div>
+    </div>
+    <div id="chat-messages"></div>
+    <input type="text" id="chat-input" placeholder="Press Enter to chat..." autocomplete="off">
+  </div>
+
+  <!-- Context menu -->
+  <div id="context-menu" class="hidden">
+    <div id="context-menu-items"></div>
+  </div>
+
+  <!-- NPC dialogue -->
+  <div id="dialogue-box" class="hidden">
+    <div id="dialogue-npc-name"></div>
+    <div id="dialogue-text"></div>
+    <div id="dialogue-options"></div>
+  </div>
+
+  <!-- Shop window -->
+  <div id="shop-window" class="hidden">
+    <div class="shop-header">
+      <span id="shop-title">Shop</span>
+      <button id="shop-close">✕</button>
+    </div>
+    <div id="shop-items"></div>
+  </div>
+
+  <!-- Bank window -->
+  <div id="bank-window" class="hidden">
+    <div class="shop-header">
+      <span>Bank</span>
+      <button id="bank-close">✕</button>
+    </div>
+    <div id="bank-items"></div>
+  </div>
+
+  <!-- Loading screen -->
+  <div id="loading-screen">
+    <div class="loading-title">RuneScape 10</div>
+    <div class="loading-bar-container">
+      <div class="loading-bar" id="loading-bar"></div>
+    </div>
+    <div class="loading-text" id="loading-text">Loading...</div>
+  </div>
+</div>
+
+<script src="textures.js"></script>
+<script src="shaders.js"></script>
+<script src="renderer.js"></script>
+<script src="world.js"></script>
+<script src="entities.js"></script>
+<script src="player.js"></script>
+<script src="ui.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
