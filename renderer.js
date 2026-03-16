@@ -8,6 +8,11 @@ class Renderer {
     });
     if (!this.gl) throw new Error('WebGL2 not supported');
     
+    // Enable float texture extensions early
+    this.gl.getExtension('EXT_color_buffer_float');
+    this.gl.getExtension('EXT_color_buffer_half_float');
+    this.gl.getExtension('OES_texture_float_linear');
+    
     this.width = 0;
     this.height = 0;
     this.time = 0;
@@ -102,14 +107,35 @@ class Renderer {
     const fb = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
     
+    // Try to enable float buffer extension
+    gl.getExtension('EXT_color_buffer_float');
+    gl.getExtension('EXT_color_buffer_half_float');
+    
     const tex = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, tex);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w || 1, h || 1, 0, gl.RGBA, gl.FLOAT, null);
+    
+    // Try RGBA16F first, fall back to RGBA8 if not supported
+    let usedFloat = false;
+    try {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w || 1, h || 1, 0, gl.RGBA, gl.FLOAT, null);
+      usedFloat = true;
+    } catch(e) {
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w || 1, h || 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+    }
+    
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    
+    // Check framebuffer completeness — if not complete, recreate with RGBA8
+    const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+    if (status !== gl.FRAMEBUFFER_COMPLETE && usedFloat) {
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, w || 1, h || 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+    }
     
     const rb = gl.createRenderbuffer();
     gl.bindRenderbuffer(gl.RENDERBUFFER, rb);
