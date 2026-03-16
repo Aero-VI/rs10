@@ -717,33 +717,32 @@ class Renderer {
   
   // Screen to world conversion for mouse picking
   screenToWorld(sx, sy) {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const ndcX = (sx / this.canvas.clientWidth) * 2 - 1;
     const ndcY = -((sy / this.canvas.clientHeight) * 2 - 1);
     
-    // Invert projection and view
+    // Invert projection to get view-space coordinates
     const zoom = this.cameraZoom * 1.5;
     const aspect = this.width / this.height;
-    const worldX = ndcX * zoom * aspect * 10;
-    const worldY = ndcY * zoom * 10;
+    const vx = ndcX * zoom * aspect * 10;
+    const vy = ndcY * zoom * 10;
     
-    // Invert isometric rotation
+    // Invert the isometric view rotation
+    // View was: rotate 45° around Z, then tilt atan(0.5) around X
+    // So inverse is: un-tilt around X, then un-rotate around Z
     const a = Math.PI / 4;
     const b = Math.atan(0.5);
     const cosA = Math.cos(a), sinA = Math.sin(a);
     const cosB = Math.cos(b), sinB = Math.sin(b);
     
-    // Simplified inverse for z=0 plane
-    const tx = worldX + this.cameraX;
-    const ty = worldY + this.cameraY;
+    // Undo the tilt (inverse rotate around X by -b)
+    // For z=0 ground plane intersection: vy_untilted = vy / cosB
+    const ux = vx;
+    const uy = vy / cosB;
     
-    const rx = cosA * tx - sinA * ty;
-    const ry = sinA * tx + cosA * ty;
+    // Undo the 45° rotation around Z
+    const worldX = cosA * ux + sinA * uy + this.cameraX;
+    const worldY = -sinA * ux + cosA * uy + this.cameraY;
     
-    // Adjust for isometric tilt
-    const finalX = cosA * worldX - sinA * worldY / sinB + this.cameraX;
-    const finalY = sinA * worldX + cosA * worldY / sinB + this.cameraY;
-    
-    return { x: finalX, y: finalY };
+    return { x: worldX, y: worldY };
   }
 }

@@ -145,8 +145,10 @@ class Game {
     });
     
     // Keyboard
+    this._keysHeld = {};
     document.addEventListener('keydown', e => {
       if (e.target.tagName === 'INPUT') return;
+      this._keysHeld[e.key.toLowerCase()] = true;
       
       switch (e.key) {
         case 'Escape':
@@ -158,13 +160,13 @@ class Game {
         case 'i': case 'I':
           document.querySelector('[data-tab="inventory"]').click();
           break;
-        case 's': case 'S':
-          document.querySelector('[data-tab="stats"]').click();
-          break;
         case 'e': case 'E':
           document.querySelector('[data-tab="equipment"]').click();
           break;
       }
+    });
+    document.addEventListener('keyup', e => {
+      this._keysHeld[e.key.toLowerCase()] = false;
     });
     
     // Window resize
@@ -517,6 +519,18 @@ class Game {
   }
   
   update(dt) {
+    // WASD keyboard movement
+    const k = this._keysHeld || {};
+    const speed = 5 * dt;
+    if (k['w'] || k['arrowup']) { this.player.y -= speed; this.player.path = []; }
+    if (k['s'] || k['arrowdown']) { this.player.y += speed; this.player.path = []; }
+    if (k['a'] || k['arrowleft']) { this.player.x -= speed; this.player.path = []; }
+    if (k['d'] || k['arrowright']) { this.player.x += speed; this.player.path = []; }
+    
+    // Clamp to world bounds
+    this.player.x = Math.max(0, Math.min(79, this.player.x));
+    this.player.y = Math.max(0, Math.min(79, this.player.y));
+    
     // World update (resource respawn)
     World.update(dt);
     
